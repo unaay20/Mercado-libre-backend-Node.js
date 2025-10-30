@@ -20,8 +20,13 @@ self.login = async function (req, res, next){
         if(data === null)
             return res.status(401).json({ mensaje: 'Usuario o contraseña incorrectos.' })
 
+        // Se compara 
+        const passwordMatch = await bcrypt.compare(password, data.passwordhash)
+        if (!passwordMatch)
+            return res.status(401).json({ mensaje: 'Usuario o contraseña incorrectos' })
+        
         // Utilizamos los nombres de Claims estandar
-        token = GeneraToken(data.email, data,nombre, data.rol)
+        token = GeneraToken(data.email, data.nombre, data.rol)
 
         // Bitacora
         req.bitacora("usuario.login", data.email)
