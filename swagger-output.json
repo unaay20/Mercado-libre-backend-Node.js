@@ -2,572 +2,1063 @@
   "swagger": "2.0",
   "info": {
     "title": "Backend Node.js API",
-    "description": "Esta es una API en Node.js",
+    "description": "API para backend Node.js - versión mejorada con ejemplos, respuestas y agrupación por tags.",
     "version": "1.0.0"
   },
   "host": "localhost:3000",
   "basePath": "/",
-  "schemes": [
-    "http"
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "tags": [
+    { "name": "Productos", "description": "Operaciones sobre productos" },
+    { "name": "Categorias", "description": "Operaciones sobre categorías" },
+    { "name": "Usuarios", "description": "Gestión de usuarios y roles" },
+    { "name": "Auth", "description": "Autenticación y sesiones" },
+    { "name": "Archivos", "description": "Carga y gestión de archivos" },
+    { "name": "Carrito", "description": "Operaciones de carrito de compras" },
+    { "name": "Pedido", "description": "Creación y consulta de pedidos" },
+    { "name": "Direccion", "description": "Direcciones de envío" },
+    { "name": "Bitacora", "description": "Registros / bitácora" }
   ],
   "paths": {
     "/*splat": {
       "get": {
-        "description": "",
+        "tags": ["Bitacora"],
+        "summary": "Captura rutas no definidas",
+        "description": "Endpoint comodín que devuelve 404 para rutas no existentes.",
         "responses": {
           "404": {
-            "description": "Not Found"
+            "description": "Not Found",
+            "schema": { "$ref": "#/definitions/Error" },
+            "examples": { "application/json": { "code": 404, "message": "Ruta no encontrada" } }
           }
         }
       }
     },
+
     "/api/categorias/": {
       "get": {
-        "description": "",
+        "tags": ["Categorias"],
+        "summary": "Listar categorías",
+        "parameters": [],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Listado de categorías",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Categoria" } },
+            "examples": { "application/json": [{ "categoriaId": "c1", "nombre": "Camisetas", "protegida": false }] }
+          },
+          "500": { "$ref": "#/responses/InternalError" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - listar categorías",
+            "source": "curl -X GET \"http://localhost:3000/api/categorias/\" -H \"Accept: application/json\""
           }
-        }
+        ]
       },
       "post": {
-        "description": "",
+        "tags": ["Categorias"],
+        "summary": "Crear categoría",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "nombre": {
-                  "example": "any"
-                }
-              }
-            }
+            "required": true,
+            "schema": { "$ref": "#/definitions/CategoriaCreate" }
           }
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Categoría creada",
+            "schema": { "$ref": "#/definitions/Categoria" },
+            "examples": { "application/json": { "id": "c2", "nombre": "Nuevo", "protegida": false } }
+          },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - crear categoría",
+            "source": "curl -X POST \"http://localhost:3000/api/categorias/\" -H \"Content-Type: application/json\" -d '{\"nombre\":\"Electrónica\"}'"
           }
-        }
+        ]
       }
     },
+
     "/api/categorias/{id}": {
       "get": {
-        "description": "",
+        "tags": ["Categorias"],
+        "summary": "Obtener categoría por id",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "id", "in": "path", "required": true, "type": "string", "description": "ID de la categoría" }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Categoría encontrada",
+            "schema": { "$ref": "#/definitions/Categoria" },
+            "examples": { "application/json": { "categoriaId": "c1", "nombre": "Camisetas", "protegida": false } }
           },
-          "404": {
-            "description": "Not Found"
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - obtener categoría",
+            "source": "curl -X GET \"http://localhost:3000/api/categorias/c1\" -H \"Accept: application/json\""
           }
-        }
+        ]
       },
       "put": {
-        "description": "",
+        "tags": ["Categorias"],
+        "summary": "Actualizar categoría",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "id", "in": "path", "required": true, "type": "string" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CategoriaCreate" } }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - actualizada correctamente" },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - actualizar categoría",
+            "source": "curl -X PUT \"http://localhost:3000/api/categorias/c1\" -H \"Content-Type: application/json\" -d '{\"nombre\":\"Ropa\"}'"
           }
-        }
+        ]
       },
       "delete": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Categorias"],
+        "summary": "Eliminar categoría (no protegidas)",
+        "description": "No se pueden eliminar categorías protegidas",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - eliminada correctamente" },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - eliminar categoría",
+            "source": "curl -X DELETE \"http://localhost:3000/api/categorias/c1\" -H \"Accept: application/json\""
           }
-        }
+        ]
       }
     },
+
     "/api/productos/": {
       "get": {
-        "description": "",
+        "tags": ["Productos"],
+        "summary": "Listar productos (opcional: query s)",
         "parameters": [
-          {
-            "name": "s",
-            "in": "query",
-            "type": "string"
-          }
+          { "name": "s", "in": "query", "type": "string", "description": "Filtro de búsqueda por título" }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Listado de productos",
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Producto" } },
+            "examples": {
+              "application/json": [
+                { 
+                  "productoId": "p1", 
+                  "titulo": "Camiseta", 
+                  "precio": 299.9, 
+                  "descripcion": "Algodón",
+                  "archivoid": "file123",
+                  "categorias": [
+                    { "categoriaId": "c1", "nombre": "Ropa", "protegida": false }
+                  ]
+                }
+              ]
+            }
+          },
+          "500": { "$ref": "#/responses/InternalError" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - listar productos",
+            "source": "curl -X GET \"http://localhost:3000/api/productos/?s=camiseta\" -H \"Accept: application/json\""
           }
-        }
+        ]
       },
       "post": {
-        "description": "",
+        "tags": ["Productos"],
+        "summary": "Crear producto",
         "parameters": [
           {
             "name": "body",
             "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "titulo": {
-                  "example": "any"
-                },
-                "descripcion": {
-                  "example": "any"
-                },
-                "precio": {
-                  "example": "any"
-                },
-                "archivoid": {
-                  "example": "any"
-                }
-              }
-            }
+            "required": true,
+            "schema": { "$ref": "#/definitions/ProductoCreate" }
           }
         ],
         "responses": {
           "201": {
-            "description": "Created"
+            "description": "Producto creado",
+            "schema": { "$ref": "#/definitions/Producto" },
+            "examples": { "application/json": { "id": "p2", "titulo": "Gorra", "precio": 120.0 } }
+          },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - crear producto",
+            "source": "curl -X POST \"http://localhost:3000/api/productos/\" -H \"Content-Type: application/json\" -d '{\"titulo\":\"Gorra\",\"descripcion\":\"Ropa deportiva\",\"precio\":120.0,\"archivoid\":\"file123\"}'"
           }
-        }
+        ]
       }
     },
+
     "/api/productos/{id}": {
       "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Productos"],
+        "summary": "Obtener producto por id",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
+          "200": { "description": "OK", "schema": { "$ref": "#/definitions/Producto" } },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - obtener producto",
+            "source": "curl -X GET \"http://localhost:3000/api/productos/p1\" -H \"Accept: application/json\""
           }
-        }
+        ]
       },
       "put": {
-        "description": "",
+        "tags": ["Productos"],
+        "summary": "Actualizar producto",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "id", "in": "path", "required": true, "type": "string" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/ProductoCreate" } }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - actualizado correctamente" },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - actualizar producto",
+            "source": "curl -X PUT \"http://localhost:3000/api/productos/p1\" -H \"Content-Type: application/json\" -d '{\"titulo\":\"Camiseta V2\",\"precio\":319.9}'"
           }
-        }
+        ]
       },
       "delete": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Productos"],
+        "summary": "Eliminar producto",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - eliminado correctamente" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - eliminar producto",
+            "source": "curl -X DELETE \"http://localhost:3000/api/productos/p1\" -H \"Accept: application/json\""
           }
-        }
+        ]
       }
     },
-    "/api/productos/{id}/{categoria}": {
+
+    "/api/productos/{id}/categoria": {
       "post": {
-        "description": "",
+        "tags": ["Productos"],
+        "summary": "Asignar categoría a producto",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "categoria",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
+          { "name": "id", "in": "path", "required": true, "type": "string", "description": "ID del producto" },
           {
             "name": "body",
             "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "categoriaId": {
-                  "example": "any"
-                }
-              }
+            "required": true,
+            "schema": { 
+              "type": "object", 
+              "required": ["categoriaId"],
+              "properties": { 
+                "categoriaId": { "type": "string", "example": "c2" } 
+              } 
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - asignada correctamente" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - asignar categoría",
+            "source": "curl -X POST \"http://localhost:3000/api/productos/p1/categoria\" -H \"Content-Type: application/json\" -d '{\"categoriaId\":\"c2\"}'"
           }
-        }
+        ]
       }
     },
+
     "/api/productos/{id}/categoria/{categoriaid}": {
       "delete": {
-        "description": "",
+        "tags": ["Productos"],
+        "summary": "Quitar categoría de producto",
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "categoriaid",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "id", "in": "path", "required": true, "type": "string" },
+          { "name": "categoriaid", "in": "path", "required": true, "type": "string" }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
+          "204": { "description": "No Content - desasignada correctamente" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - quitar categoría",
+            "source": "curl -X DELETE \"http://localhost:3000/api/productos/p1/categoria/c2\" -H \"Accept: application/json\""
           }
-        }
+        ]
       }
     },
+
     "/api/usuarios/": {
       "get": {
-        "description": "",
+        "tags": ["Usuarios"],
+        "summary": "Listar usuarios",
         "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Usuario" } },
+            "examples": {
+              "application/json": [
+                { "id": "u1", "email": "user@example.com", "nombre": "Juan Perez", "rol": "user" }
+              ]
+            }
+          },
+          "500": { "$ref": "#/responses/InternalError" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - listar usuarios", "source": "curl -X GET \"http://localhost:3000/api/usuarios/\" -H \"Accept: application/json\"" }
+        ]
       },
       "post": {
-        "description": "",
+        "tags": ["Usuarios"],
+        "summary": "Crear usuario",
         "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "rol": {
-                  "example": "any"
-                },
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                },
-                "nombre": {
-                  "example": "any"
-                }
-              }
-            }
-          }
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/UsuarioCreate" } }
         ],
         "responses": {
-          "201": {
-            "description": "Created"
+          "201": { 
+            "description": "Usuario creado", 
+            "schema": { "$ref": "#/definitions/UsuarioResponse" },
+            "examples": {
+              "application/json": { 
+                "id": "550e8400-e29b-41d4-a716-446655440000",
+                "email": "user@example.com", 
+                "nombre": "Juan", 
+                "rolid": "user" 
+              }
+            }
+          },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - crear usuario",
+            "source": "curl -X POST \"http://localhost:3000/api/usuarios/\" -H \"Content-Type: application/json\" -d '{\"email\":\"user@example.com\",\"password\":\"Pass123\",\"nombre\":\"Juan\",\"rol\":\"user\"}'"
           }
-        }
+        ]
       }
     },
+
     "/api/usuarios/{email}": {
       "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Usuarios"],
+        "summary": "Obtener usuario por email",
+        "parameters": [{ "name": "email", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
+          "200": { "description": "OK", "schema": { "$ref": "#/definitions/Usuario" } },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - obtener usuario", "source": "curl -X GET \"http://localhost:3000/api/usuarios/user%40example.com\" -H \"Accept: application/json\"" }
+        ]
       },
       "put": {
-        "description": "",
+        "tags": ["Usuarios"],
+        "summary": "Actualizar rol de usuario",
         "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "rol": {
-                  "example": "any"
-                },
-                "rolid": {
-                  "example": "any"
-                }
-              }
-            }
-          }
+          { "name": "email", "in": "path", "required": true, "type": "string" },
+          { "name": "body", "in": "body", "required": true, "schema": { "type": "object", "properties": { "rol": { "type": "string", "example": "admin" } } } }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
-          }
-        }
+          "204": { "description": "No Content - actualizado" },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - actualizar usuario", "source": "curl -X PUT \"http://localhost:3000/api/usuarios/user%40example.com\" -H \"Content-Type: application/json\" -d '{\"rol\":\"admin\"}'" }
+        ]
       },
       "delete": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Usuarios"],
+        "summary": "Eliminar usuario (no protegidos)",
+        "description": "No se pueden eliminar usuarios protegidos",
+        "parameters": [{ "name": "email", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "403": {
-            "description": "Forbidden"
-          }
-        }
+          "204": { "description": "No Content - eliminado" },
+          "403": { "$ref": "#/responses/Forbidden" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - eliminar usuario", "source": "curl -X DELETE \"http://localhost:3000/api/usuarios/user%40example.com\" -H \"Accept: application/json\"" }
+        ]
       }
     },
+
     "/api/roles/": {
       "get": {
-        "description": "",
+        "tags": ["Usuarios"],
+        "summary": "Listar roles",
         "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Rol" } },
+            "examples": {
+              "application/json": [
+                { "id": "r1", "nombre": "admin" },
+                { "id": "r2", "nombre": "user" }
+              ]
+            }
+          },
+          "500": { "$ref": "#/responses/InternalError" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - listar roles", "source": "curl -X GET \"http://localhost:3000/api/roles/\" -H \"Accept: application/json\"" }
+        ]
       }
     },
+
     "/api/auth/": {
       "post": {
-        "description": "",
+        "tags": ["Auth"],
+        "summary": "Autenticar usuario (login)",
         "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "email": {
-                  "example": "any"
-                },
-                "password": {
-                  "example": "any"
-                }
-              }
-            }
-          }
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/AuthRequest" } }
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Autenticación exitosa",
+            "schema": { "$ref": "#/definitions/AuthResponse" },
+            "examples": { 
+              "application/json": { 
+                "email": "user@example.com",
+                "nombre": "Juan Perez",
+                "rol": "user",
+                "jwt": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." 
+              } 
+            }
           },
-          "401": {
-            "description": "Unauthorized"
-          }
-        }
+          "401": { "$ref": "#/responses/Unauthorized" },
+          "400": { "$ref": "#/responses/BadRequest" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - login", "source": "curl -X POST \"http://localhost:3000/api/auth/\" -H \"Content-Type: application/json\" -d '{\"email\":\"user@example.com\",\"password\":\"Pass123\"}'" }
+        ]
       }
     },
+
     "/api/auth/tiempo": {
       "get": {
-        "description": "",
+        "tags": ["Auth"],
+        "summary": "Obtener tiempo restante del token JWT",
+        "description": "Devuelve el tiempo restante de validez del token de sesión",
         "responses": {
-          "200": {
-            "description": "OK"
+          "200": { 
+            "description": "OK",
+            "schema": { 
+              "type": "object", 
+              "properties": { 
+                "tiempoRestante": { "type": "integer", "description": "Segundos restantes" } 
+              } 
+            } 
           },
-          "404": {
-            "description": "Not Found"
-          }
-        }
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - tiempo token", "source": "curl -X GET \"http://localhost:3000/api/auth/tiempo\" -H \"Authorization: Bearer {token}\"" }
+        ]
       }
     },
+
     "/api/archivos/": {
       "get": {
-        "description": "",
+        "tags": ["Archivos"],
+        "summary": "Listar archivos",
         "responses": {
-          "200": {
-            "description": "OK"
-          }
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/ArchivoList" } },
+            "examples": {
+              "application/json": [
+                { "archivoId": "file123", "mime": "image/png", "indb": true, "nombre": "img.png", "size": 2048 }
+              ]
+            }
+          },
+          "500": { "$ref": "#/responses/InternalError" }
         }
       },
       "post": {
-        "description": "",
-        "responses": {
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/api/archivos/{id}": {
-      "get": {
-        "description": "",
+        "tags": ["Archivos"],
+        "summary": "Subir nuevo archivo",
+        "consumes": ["multipart/form-data"],
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "file", "in": "formData", "type": "file", "required": true, "description": "Archivo a subir" }
         ],
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": { 
+            "description": "Creado", 
+            "schema": { "$ref": "#/definitions/ArchivoResponse" },
+            "examples": {
+              "application/json": { "id": "file456", "mime": "image/jpeg", "indb": true, "nombre": "photo.jpg" }
+            }
           },
-          "404": {
-            "description": "Not Found"
+          "400": { "$ref": "#/responses/BadRequest" }
+        },
+        "x-codeSamples": [
+          {
+            "lang": "cURL",
+            "label": "cURL - subir archivo",
+            "source": "curl -X POST \"http://localhost:3000/api/archivos/\" -F \"file=@./img.png\""
           }
+        ]
+      }
+    },
+
+    "/api/archivos/{id}": {
+      "get": {
+        "tags": ["Archivos"],
+        "summary": "Descargar archivo por id",
+        "description": "Retorna el archivo binario con su Content-Type apropiado",
+        "produces": ["image/*", "application/pdf", "application/octet-stream"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
+        "responses": {
+          "200": { 
+            "description": "OK - Archivo binario",
+            "schema": { "type": "file" }
+          },
+          "404": { "$ref": "#/responses/NotFound" }
         }
       },
       "put": {
-        "description": "",
+        "tags": ["Archivos"],
+        "summary": "Actualizar archivo",
+        "consumes": ["multipart/form-data"],
         "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
+          { "name": "id", "in": "path", "required": true, "type": "string" },
+          { "name": "file", "in": "formData", "type": "file", "required": true }
         ],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "400": {
-            "description": "Bad Request"
-          },
-          "404": {
-            "description": "Not Found"
-          }
+          "204": { "description": "No Content - actualizado" },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" }
         }
       },
       "delete": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Archivos"],
+        "summary": "Eliminar archivo",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "204": {
-            "description": "No Content"
-          },
-          "404": {
-            "description": "Not Found"
-          }
+          "204": { "description": "No Content - eliminado" },
+          "404": { "$ref": "#/responses/NotFound" }
         }
       }
     },
+
     "/api/archivos/{id}/detalle": {
       "get": {
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
+        "tags": ["Archivos"],
+        "summary": "Detalle de metadatos del archivo",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
         "responses": {
-          "200": {
-            "description": "OK"
+          "200": { 
+            "description": "OK", 
+            "schema": { "$ref": "#/definitions/ArchivoList" } 
           },
-          "404": {
-            "description": "Not Found"
+          "404": { "$ref": "#/responses/NotFound" }
+        }
+      }
+    },
+
+    "/api/bitacora/": {
+      "get": {
+        "tags": ["Bitacora"],
+        "summary": "Listar entradas de bitácora",
+        "description": "Devuelve las entradas ordenadas por fecha descendente",
+        "responses": {
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Bitacora" } },
+            "examples": {
+              "application/json": [
+                { 
+                  "bitacoraId": "b1",
+                  "accion": "usuario.login",
+                  "elementoid": "user@example.com",
+                  "ip": "192.168.1.100",
+                  "usuario": "admin@example.com",
+                  "fecha": "2025-11-10T12:00:00Z"
+                }
+              ]
+            }
           }
         }
       }
     },
-    "/api/bitacora/": {
+
+    "/api/carrito/": {
       "get": {
-        "description": "",
+        "tags": ["Carrito"],
+        "summary": "Obtener carrito del usuario (sesión)",
         "responses": {
-          "200": {
-            "description": "OK"
+          "200": { "description": "OK", "schema": { "$ref": "#/definitions/Carrito" } },
+          "404": { "$ref": "#/responses/NotFound" }
+        }
+      },
+      "delete": {
+        "tags": ["Carrito"],
+        "summary": "Vaciar carrito",
+        "responses": { "204": { "description": "No Content - carrito vaciado" } },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - vaciar carrito", "source": "curl -X DELETE \"http://localhost:3000/api/carrito/\" -H \"Accept: application/json\"" }
+        ]
+      }
+    },
+
+    "/api/carrito/items": {
+      "post": {
+        "tags": ["Carrito"],
+        "summary": "Agregar item al carrito",
+        "parameters": [
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/CarritoItemCreate" } }
+        ],
+        "responses": {
+          "201": { "description": "Item agregado", "schema": { "$ref": "#/definitions/CarritoItem" } },
+          "404": { "$ref": "#/responses/NotFound" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - agregar item", "source": "curl -X POST \"http://localhost:3000/api/carrito/items\" -H \"Content-Type: application/json\" -d '{\"productoId\":\"p1\",\"cantidad\":2}'" }
+        ]
+      }
+    },
+
+    "/api/carrito/items/{itemId}": {
+      "patch": {
+        "tags": ["Carrito"],
+        "summary": "Actualizar cantidad de un item del carrito",
+        "parameters": [
+          { "name": "itemId", "in": "path", "required": true, "type": "string" },
+          { "name": "body", "in": "body", "required": true, "schema": { "type": "object", "properties": { "cantidad": { "type": "integer", "example": 3 } } } }
+        ],
+        "responses": {
+          "204": { "description": "No Content - actualizado" },
+          "403": { "$ref": "#/responses/Forbidden" },
+          "404": { "$ref": "#/responses/NotFound" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - actualizar cantidad", "source": "curl -X PATCH \"http://localhost:3000/api/carrito/items/abc123\" -H \"Content-Type: application/json\" -d '{\"cantidad\":3}'" }
+        ]
+      },
+      "delete": {
+        "tags": ["Carrito"],
+        "summary": "Eliminar item del carrito",
+        "parameters": [{ "name": "itemId", "in": "path", "required": true, "type": "string" }],
+        "responses": {
+          "204": { "description": "No Content - eliminado" },
+          "403": { "$ref": "#/responses/Forbidden" },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - eliminar item", "source": "curl -X DELETE \"http://localhost:3000/api/carrito/items/abc123\" -H \"Accept: application/json\"" }
+        ]
+      }
+    },
+
+    "/api/pedido/": {
+      "get": {
+        "tags": ["Pedido"],
+        "summary": "Listar pedidos del usuario",
+        "responses": { 
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Pedido" } } 
+          } 
+        }
+      },
+      "post": {
+        "tags": ["Pedido"],
+        "summary": "Crear pedido desde carrito (checkout)",
+        "description": "Crea un pedido a partir de los items del carrito. Valida stock y disponibilidad de productos. Limpia el carrito tras crear el pedido.",
+        "parameters": [
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/PedidoCreate" } }
+        ],
+        "responses": {
+          "201": { 
+            "description": "Pedido creado", 
+            "schema": { "$ref": "#/definitions/PedidoCreateResponse" },
+            "examples": {
+              "application/json": { "pedidoId": "ord123", "total": 599.8 }
+            }
+          },
+          "400": { "$ref": "#/responses/BadRequest" },
+          "404": { "$ref": "#/responses/NotFound" },
+          "409": { "$ref": "#/responses/Conflict" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - crear pedido", "source": "curl -X POST \"http://localhost:3000/api/pedido/\" -H \"Content-Type: application/json\" -d '{\"direccionId\":1}'" }
+        ]
+      }
+    },
+
+    "/api/pedido/{id}": {
+      "get": {
+        "tags": ["Pedido"],
+        "summary": "Obtener pedido por id",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
+        "responses": {
+          "200": { "description": "OK", "schema": { "$ref": "#/definitions/Pedido" } },
+          "404": { "$ref": "#/responses/NotFound" }
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - obtener pedido", "source": "curl -X GET \"http://localhost:3000/api/pedido/ord123\" -H \"Accept: application/json\"" }
+        ]
+      }
+    },
+
+    "/api/direccion/": {
+      "get": {
+        "tags": ["Direccion"],
+        "summary": "Listar direcciones del usuario",
+        "responses": { 
+          "200": { 
+            "description": "OK", 
+            "schema": { "type": "array", "items": { "$ref": "#/definitions/Direccion" } },
+            "examples": {
+              "application/json": [
+                { "id": 1, "usuarioId": "u1", "calle": "Av. Principal 123", "ciudad": "Ciudad", "codigoPostal": "12345" }
+              ]
+            }
+          } 
+        }
+      },
+      "post": {
+        "tags": ["Direccion"],
+        "summary": "Crear dirección",
+        "parameters": [
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/DireccionCreate" } }
+        ],
+        "responses": { 
+          "201": { 
+            "description": "Creada", 
+            "schema": { "$ref": "#/definitions/Direccion" } 
+          }, 
+          "400": { "$ref": "#/responses/BadRequest" } 
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - crear dirección", "source": "curl -X POST \"http://localhost:3000/api/direccion/\" -H \"Content-Type: application/json\" -d '{\"calle\":\"Av. Principal 123\",\"ciudad\":\"Ciudad\",\"codigoPostal\":\"12345\"}'" }
+        ]
+      }
+    },
+
+    "/api/direccion/{id}": {
+      "get": {
+        "tags": ["Direccion"],
+        "summary": "Obtener dirección por id",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
+        "responses": { 
+          "200": { "description": "OK", "schema": { "$ref": "#/definitions/Direccion" } }, 
+          "404": { "$ref": "#/responses/NotFound" } 
+        }
+      },
+      "put": {
+        "tags": ["Direccion"],
+        "summary": "Actualizar dirección",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "type": "string" },
+          { "name": "body", "in": "body", "required": true, "schema": { "$ref": "#/definitions/DireccionCreate" } }
+        ],
+        "responses": { 
+          "204": { "description": "No Content - actualizada" }, 
+          "400": { "$ref": "#/responses/BadRequest" }, 
+          "404": { "$ref": "#/responses/NotFound" } 
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - actualizar dirección", "source": "curl -X PUT \"http://localhost:3000/api/direccion/1\" -H \"Content-Type: application/json\" -d '{\"calle\":\"Nueva Calle 456\",\"ciudad\":\"Ciudad\",\"codigoPostal\":\"54321\"}'" }
+        ]
+      },
+      "delete": {
+        "tags": ["Direccion"],
+        "summary": "Eliminar dirección",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "type": "string" }],
+        "responses": { 
+          "204": { "description": "No Content - eliminada" }, 
+          "404": { "$ref": "#/responses/NotFound" } 
+        },
+        "x-codeSamples": [
+          { "lang": "cURL", "label": "cURL - eliminar dirección", "source": "curl -X DELETE \"http://localhost:3000/api/direccion/1\" -H \"Accept: application/json\"" }
+        ]
+      }
+    }
+  },
+
+  "responses": {
+    "BadRequest": {
+      "description": "Bad Request - Validación fallida",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 400, "message": "Parámetros inválidos" } }
+    },
+    "Unauthorized": {
+      "description": "Unauthorized - credenciales inválidas",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 401, "message": "No autorizado" } }
+    },
+    "Forbidden": {
+      "description": "Forbidden - acceso denegado",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 403, "message": "Acceso prohibido" } }
+    },
+    "NotFound": {
+      "description": "Not Found - recurso no encontrado",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 404, "message": "No encontrado" } }
+    },
+    "Conflict": {
+      "description": "Conflict - violación de estado / duplicado / stock insuficiente",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 409, "message": "Conflicto: recurso duplicado o estado inconsistente" } }
+    },
+    "InternalError": {
+      "description": "Internal Server Error",
+      "schema": { "$ref": "#/definitions/Error" },
+      "examples": { "application/json": { "code": 500, "message": "Error interno del servidor" } }
+    }
+  },
+
+  "definitions": {
+    "Error": {
+      "type": "object",
+      "properties": {
+        "code": { "type": "integer", "example": 400 },
+        "message": { "type": "string", "example": "Descripción del error" },
+        "details": { "type": "object", "example": {} }
+      }
+    },
+    "CategoriaCreate": {
+      "type": "object",
+      "required": ["nombre"],
+      "properties": { "nombre": { "type": "string", "example": "Electrónica" } }
+    },
+    "Categoria": {
+      "type": "object",
+      "properties": {
+        "categoriaId": { "type": "string", "example": "c1" },
+        "nombre": { "type": "string", "example": "Electrónica" },
+        "protegida": { "type": "boolean", "example": false }
+      }
+    },
+    "ProductoCreate": {
+      "type": "object",
+      "required": ["titulo", "descripcion", "precio"],
+      "properties": {
+        "titulo": { "type": "string", "example": "Camiseta" },
+        "descripcion": { "type": "string", "example": "Algodón 100%" },
+        "precio": { "type": "number", "format": "float", "example": 299.9 },
+        "archivoid": { "type": "string", "example": "file123", "description": "ID del archivo de imagen asociado" }
+      }
+    },
+    "Producto": {
+      "type": "object",
+      "properties": {
+        "productoId": { "type": "string", "example": "p1" },
+        "titulo": { "type": "string", "example": "Camiseta" },
+        "descripcion": { "type": "string", "example": "Algodón 100%" },
+        "precio": { "type": "number", "format": "float", "example": 299.9 },
+        "archivoid": { "type": "string", "example": "file123" },
+        "categorias": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Categoria" }
+        }
+      }
+    },
+    "UsuarioCreate": {
+      "type": "object",
+      "required": ["email", "password", "nombre", "rol"],
+      "properties": {
+        "email": { "type": "string", "format": "email", "example": "user@example.com" },
+        "password": { "type": "string", "example": "Pass123" },
+        "nombre": { "type": "string", "example": "Juan Perez" },
+        "rol": { "type": "string", "example": "user", "description": "Nombre del rol" }
+      }
+    },
+    "Usuario": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "example": "u1" },
+        "email": { "type": "string", "example": "user@example.com" },
+        "nombre": { "type": "string", "example": "Juan Perez" },
+        "rol": { "type": "string", "example": "user" }
+      }
+    },
+    "UsuarioResponse": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "format": "uuid", "example": "550e8400-e29b-41d4-a716-446655440000" },
+        "email": { "type": "string", "example": "user@example.com" },
+        "nombre": { "type": "string", "example": "Juan Perez" },
+        "rolid": { "type": "string", "example": "user" }
+      }
+    },
+    "Rol": {
+      "type": "object",
+      "properties": { 
+        "id": { "type": "string", "example": "r1" }, 
+        "nombre": { "type": "string", "example": "admin" } 
+      }
+    },
+    "AuthRequest": {
+      "type": "object",
+      "required": ["email", "password"],
+      "properties": { 
+        "email": { "type": "string", "example": "user@example.com" }, 
+        "password": { "type": "string", "example": "Pass123" } 
+      }
+    },
+    "AuthResponse": {
+      "type": "object",
+      "properties": { 
+        "email": { "type": "string", "example": "user@example.com" },
+        "nombre": { "type": "string", "example": "Juan Perez" },
+        "rol": { "type": "string", "example": "user" },
+        "jwt": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." } 
+      }
+    },
+    "ArchivoList": {
+      "type": "object",
+      "properties": {
+        "archivoId": { "type": "string", "example": "file123" },
+        "mime": { "type": "string", "example": "image/png" },
+        "indb": { "type": "boolean", "example": true, "description": "Si está almacenado en BD o filesystem" },
+        "nombre": { "type": "string", "example": "img.png" },
+        "size": { "type": "integer", "example": 2048 }
+      }
+    },
+    "ArchivoResponse": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "example": "file123" },
+        "mime": { "type": "string", "example": "image/png" },
+        "indb": { "type": "boolean", "example": true },
+        "nombre": { "type": "string", "example": "img.png" }
+      }
+    },
+    "Bitacora": {
+      "type": "object",
+      "properties": { 
+        "bitacoraId": { "type": "string", "example": "b1" },
+        "accion": { "type": "string", "example": "usuario.login" }, 
+        "elementoid": { "type": "string", "example": "user@example.com" },
+        "ip": { "type": "string", "example": "192.168.1.100" },
+        "usuario": { "type": "string", "example": "admin@example.com" }, 
+        "fecha": { "type": "string", "format": "date-time", "example": "2025-11-10T12:00:00Z" } 
+      }
+    },
+    "CarritoItemCreate": {
+      "type": "object",
+      "required": ["productoId", "cantidad"],
+      "properties": { 
+        "productoId": { "type": "string", "example": "p1" }, 
+        "cantidad": { "type": "integer", "example": 2 } 
+      }
+    },
+    "CarritoItem": {
+      "type": "object",
+      "properties": { 
+        "itemId": { "type": "string", "example": "ci1" }, 
+        "productoId": { "type": "string", "example": "p1" }, 
+        "cantidad": { "type": "integer", "example": 2 },
+        "precioUnitario": { "type": "number", "format": "float", "example": 299.9 }
+      }
+    },
+    "Carrito": {
+      "type": "object",
+      "properties": { 
+        "items": { "type": "array", "items": { "$ref": "#/definitions/CarritoItem" } }, 
+        "total": { "type": "number", "format": "float", "example": 599.8 } 
+      }
+    },
+    "PedidoCreate": {
+      "type": "object",
+      "required": ["direccionId"],
+      "properties": { 
+        "direccionId": { "type": "integer", "example": 1 }
+      }
+    },
+    "PedidoCreateResponse": {
+      "type": "object",
+      "properties": {
+        "pedidoId": { "type": "string", "example": "ord123" },
+        "total": { "type": "number", "format": "float", "example": 599.8 }
+      }
+    },
+    "Pedido": {
+      "type": "object",
+      "properties": { 
+        "id": { "type": "string", "example": "ord123" },
+        "usuarioId": { "type": "string", "example": "u1" },
+        "direccionId": { "type": "integer", "example": 1 },
+        "total": { "type": "number", "format": "float", "example": 599.8 },
+        "estado": { "type": "string", "example": "pendiente" },
+        "items": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "pedidoId": { "type": "string" },
+              "productoId": { "type": "string" },
+              "cantidad": { "type": "integer" },
+              "precioUnitario": { "type": "number", "format": "float" }
+            }
           }
         }
+      }
+    },
+    "DireccionCreate": {
+      "type": "object",
+      "required": ["calle", "ciudad", "codigoPostal"],
+      "properties": { 
+        "calle": { "type": "string", "example": "Av. Principal 123" }, 
+        "ciudad": { "type": "string", "example": "Ciudad" }, 
+        "codigoPostal": { "type": "string", "example": "12345" } 
+      }
+    },
+    "Direccion": {
+      "type": "object",
+      "properties": { 
+        "id": { "type": "integer", "example": 1 },
+        "usuarioId": { "type": "string", "example": "u1" },
+        "calle": { "type": "string", "example": "Av. Principal 123" }, 
+        "ciudad": { "type": "string", "example": "Ciudad" }, 
+        "codigoPostal": { "type": "string", "example": "12345" } 
       }
     }
   }

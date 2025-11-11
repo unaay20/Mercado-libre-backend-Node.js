@@ -3,13 +3,17 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class usuario extends Model {
     static associate(models) {
-      usuario.belongsTo(models.rol);
+      usuario.belongsTo(models.rol, { foreignKey: 'rolid' });
+      usuario.hasOne(models.carrito, { foreignKey: 'usuarioId' });
+      usuario.hasMany(models.direccion, { foreignKey: 'usuarioId' });
+      usuario.hasMany(models.pedido, { foreignKey: 'usuarioId' });
     }
   }
   usuario.init({
     id: {
-      type: DataTypes.STRING,
-      primaryKey: true
+      type: DataTypes.UUID,
+      primaryKey: true,
+      defaultValue: DataTypes.UUIDV4
     },
     email: {
       type: DataTypes.STRING,
@@ -29,7 +33,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     },
     rolid: {
-      type: DataTypes.STRING,
+      type: DataTypes.UUID,
       allowNull: false,
     },
   }, {
