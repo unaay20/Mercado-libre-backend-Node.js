@@ -15,7 +15,7 @@ function mapUserFromToken(req, res, next) {
 }
 
 // Protección: usuarios autenticados
-router.use(Authorize('admin,user'), mapUserFromToken);
+router.use(Authorize('Usuario,Administrador'), mapUserFromToken);
 
 // GET /api/direcciones -> listar direcciones del usuario
 router.get('/', direccionController.getAll);

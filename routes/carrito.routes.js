@@ -15,7 +15,7 @@ function mapUserFromToken(req, res, next) {
 }
 
 // Rutas protegidas: usuario autenticado (ajusta roles si es necesario)
-router.use(Authorize('admin,user'), mapUserFromToken);
+router.use(Authorize('Usuario,Administrador'), mapUserFromToken);
 
 // GET /api/carrito
 router.get('/', carritoController.get);

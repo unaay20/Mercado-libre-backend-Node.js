@@ -1,109 +1,134 @@
 @startuml
-' Clases existentes (resumidas)
-class Usuario {
-  +id: string
-  +email: string
-  +passwordHash: string
-  +nombre: string
-  +protegido: boolean
-  +rolId: string
-}
-class Rol {
-  +id: string
-  +nombre: string
-}
-class Producto {
-  +id: int
-  +titulo: string
-  +descripcion: text
-  +precio: decimal
-  +archivoId: int
-  +stock: int
-  +activo: boolean
-}
-class Archivo {
-  +id: int
-  +mime: string
-  +nombre: string
-  +size: int
-  +indb: boolean
-  +datos: blob
-}
-class Categoria {
-  +id: int
-  +nombre: string
-  +protegida: boolean
-}
-class Bitacora {
-  +id: int
-  +accion: string
-  +elementoId: string
-  +ip: string
-  +usuario: string
-  +fecha: date
+skinparam classAttributeIconSize 0
+
+class usuario {
+  +id : UUID
+  +email : STRING
+  +passwordhash : STRING
+  +nombre : STRING
+  +protegido : BOOLEAN
+  +rolid : UUID
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
 }
 
-' Nuevas clases para carrito y pedido
-class Carrito {
-  +id: int
-  +usuarioId: string
-  +creadoEn: date
-  +actualizadoEn: date
-}
-class CarritoItem {
-  +id: int
-  +carritoId: int
-  +productoId: int
-  +cantidad: int
-  +precioUnitario: decimal
-}
-class Pedido {
-  +id: int
-  +usuarioId: string
-  +direccionId: int
-  +total: decimal
-  +estado: string
-  +creadoEn: date
-}
-class PedidoItem {
-  +id: int
-  +pedidoId: int
-  +productoId: int
-  +cantidad: int
-  +precioUnitario: decimal
-}
-class Direccion {
-  +id: int
-  +usuarioId: string
-  +calle: string
-  +ciudad: string
-  +estado: string
-  +codigoPostal: string
-  +pais: string
-}
-class Pago {
-  +id: int
-  +pedidoId: int
-  +metodo: string
-  +importe: decimal
-  +estadoPago: string
-  +referencia: string
-  +creadoEn: date
+class rol {
+  +id : UUID
+  +nombre : STRING
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
 }
 
-' Relaciones
-Usuario "1" -- "0..1" Carrito
-Carrito "1" -- "0..*" CarritoItem
-CarritoItem "*" -- "1" Producto
+class direccion {
+  +id : INT
+  +usuarioId : UUID
+  +calle : STRING
+  +ciudad : STRING
+  +estado : STRING
+  +codigoPostal : STRING
+  +pais : STRING
+  +creadoEn : DATETIME
+}
 
-Usuario "1" -- "0..*" Pedido
-Pedido "1" -- "0..*" PedidoItem
-PedidoItem "*" -- "1" Producto
+class carrito {
+  +id : INT
+  +usuarioId : UUID
+  +creadoEn : DATETIME
+  +actualizadoEn : DATETIME
+}
 
-Pedido "1" -- "0..1" Pago
-Usuario "1" -- "0..*" Direccion
-Producto "*" -- "*" Categoria : <<through categoriaproducto>>
-Producto "0..1" -- "1" Archivo
+class carritoitem {
+  +id : INT
+  +carritoId : INT
+  +productoId : INT
+  +cantidad : INT
+  +precioUnitario : DECIMAL(10,2)
+  +creadoEn : DATETIME
+  +actualizadoEn : DATETIME
+}
 
-Usuario "1" -- "1" Rol
+class pedido {
+  +id : INT
+  +usuarioId : UUID
+  +direccionId : INT
+  +total : DECIMAL(12,2)
+  +estado : STRING
+  +metodoPago : STRING
+  +creadoEn : DATETIME
+  +actualizadoEn : DATETIME
+}
+
+class pedidoitem {
+  +id : INT
+  +pedidoId : INT
+  +productoId : INT
+  +cantidad : INT
+  +precioUnitario : DECIMAL(10,2)
+  +creadoEn : DATETIME
+}
+
+class producto {
+  +id : INT
+  +titulo : STRING
+  +descripcion : TEXT
+  +precio : DECIMAL(10,2)
+  +archivoid : INT
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
+}
+
+class archivo {
+  +id : INT
+  +mime : STRING
+  +nombre : STRING
+  +size : INT
+  +isdb : TINYINT
+  +datos : LONGBLOB
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
+}
+
+class categoria {
+  +id : INT
+  +nombre : STRING
+  +protegida : BOOLEAN
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
+}
+
+class categoriaProducto {
+  +categoriaId : INT
+  +productoId : INT
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
+}
+
+class bitacora {
+  +id : INT
+  +accion : STRING
+  +elementoid : STRING
+  +ip : STRING
+  +usuario : STRING
+  +fecha : DATETIME
+  +createdAt : DATETIME
+  +updatedAt : DATETIME
+}
+
+/' Associations and multiplicities '/
+usuario "1" -- "0..*" pedido : realiza >
+usuario "1" -- "0..1" carrito : posee >
+carrito "1" -- "0..*" carritoitem : contiene >
+carritoitem "*" -- "1" producto : referencia >
+pedido "1" -- "1..*" pedidoitem : tiene >
+pedidoitem "*" -- "1" producto : referencia >
+pedido "1" -- "1" direccion : entrega_en >
+direccion "*" -- "1" usuario : pertenece_a >
+usuario "1" -- "0..*" direccion : registra >
+producto "1" -- "0..1" archivo : tiene_imagen >
+producto "1" -- "0..*" categoriaProducto : mapea >
+categoria "1" -- "0..*" categoriaProducto : mapea >
+categoriaProducto "*" -- "1" producto : relaciona >
+rol "1" -- "0..*" usuario : asigna >
+bitacora "*" -- "0..1" usuario : loguea >
+
 @enduml

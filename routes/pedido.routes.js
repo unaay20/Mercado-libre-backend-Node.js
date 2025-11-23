@@ -15,7 +15,7 @@ function mapUserFromToken(req, res, next) {
 }
 
 // Protección: solo usuarios autenticados
-router.use(Authorize('admin,user'), mapUserFromToken);
+router.use(Authorize('Usuario,Administrador'), mapUserFromToken);
 
 // GET /api/pedidos -> listar pedidos del usuario
 router.get('/', pedidoController.getAll);
