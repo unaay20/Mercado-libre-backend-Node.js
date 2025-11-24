@@ -1,4 +1,4 @@
-const { pedido, pedidoitem, carrito, carritoitem, producto, direccion, Sequelize } = require('../models');
+const { pedido, pedidoitem, carrito, carritoitem, producto, direccion, sequelize, usuario } = require('../models');
 const { body, validationResult } = require('express-validator');
 
 let self = {};
@@ -10,8 +10,14 @@ self.checkoutValidator = [
 // GET: api/pedidos -> pedidos del usuario
 self.getAll = async function (req, res, next) {
   try {
-    const userId = req.user.id;
-    const data = await pedido.findAll({
+    const userEmail = req.user.id;
+
+    const user = await usuario.findOne({ where: { email: userEmail } });
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userId = user.id;    const data = await pedido.findAll({
       where: { usuarioId: userId },
       include: { model: pedidoitem }
     });
@@ -24,8 +30,14 @@ self.getAll = async function (req, res, next) {
 // GET: api/pedidos/:id
 self.get = async function (req, res, next) {
   try {
-    const userId = req.user.id;
-    const id = req.params.id;
+    const userEmail = req.user.id;
+
+    const user = await usuario.findOne({ where: { email: userEmail } });
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userId = user.id;    const id = req.params.id;
     const data = await pedido.findOne({
       where: { id, usuarioId: userId },
       include: { model: pedidoitem }
@@ -39,13 +51,19 @@ self.get = async function (req, res, next) {
 
 // POST: api/pedidos  -> checkout: crea pedido desde carrito
 self.create = async function (req, res, next) {
-  const t = await Sequelize.transaction();
+  const t = await sequelize.transaction();
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) throw new Error(JSON.stringify(errors));
 
-    const userId = req.user.id;
-    const { direccionId } = req.body;
+    const userEmail = req.user.id;
+
+    const user = await usuario.findOne({ where: { email: userEmail } });
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    const userId = user.id;    const { direccionId } = req.body;
 
     const dir = await direccion.findOne({ where: { id: direccionId, usuarioId: userId }});
     if (!dir) {
