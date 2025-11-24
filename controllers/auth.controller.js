@@ -60,9 +60,13 @@ self.registro = async function (req, res, next) {
             })
         }
 
-        if (password.length < 8) {
+        // Validar política de contraseña segura
+        // Mínimo 8 caracteres, debe incluir: mayúscula, minúscula, número y símbolo
+        const passwordRegex = /^(?=.*[A-ZÑ])(?=.*[a-zñ])(?=.*\d)(?=.*[!#$%&/()=?])[A-Za-zÑñ\d!#$%&/()=?]{8,255}$/
+        
+        if (!passwordRegex.test(password)) {
             return res.status(400).json({ 
-                mensaje: 'La contraseña debe tener al menos 8 caracteres' 
+                mensaje: 'La contraseña debe tener al menos 8 caracteres e incluir: una mayúscula, una minúscula, un número y un símbolo (!#$%&/()=?)'
             })
         }
 
