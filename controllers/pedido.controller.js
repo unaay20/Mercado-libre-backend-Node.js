@@ -19,7 +19,7 @@ self.getAll = async function (req, res, next) {
 
     const userId = user.id;    const data = await pedido.findAll({
       where: { usuarioId: userId },
-      include: { model: pedidoitem }
+      include: { model: pedidoitem, as: 'items' }
     });
     res.status(200).json(data);
   } catch (error) {
@@ -40,7 +40,7 @@ self.get = async function (req, res, next) {
     const userId = user.id;    const id = req.params.id;
     const data = await pedido.findOne({
       where: { id, usuarioId: userId },
-      include: { model: pedidoitem }
+      include: { model: pedidoitem, as: 'items' }
     });
     if (!data) return res.status(404).send();
     res.status(200).json(data);
@@ -86,14 +86,7 @@ self.create = async function (req, res, next) {
     let total = 0;
     for (const it of items) {
       const prod = await producto.findByPk(it.productoId, { transaction: t, lock: t.LOCK.UPDATE });
-      if (!prod || !prod.activo) {
-        await t.rollback();
-        return res.status(409).json({ message: `Producto no disponible: ${it.productoId}` });
-      }
-      if (prod.stock < it.cantidad) {
-        await t.rollback();
-        return res.status(409).json({ message: `Stock insuficiente para producto ${prod.id}` });
-      }
+    
       total += parseFloat(it.precioUnitario) * parseInt(it.cantidad, 10);
     }
 
@@ -113,7 +106,6 @@ self.create = async function (req, res, next) {
       }, { transaction: t });
 
       const prod = await producto.findByPk(it.productoId, { transaction: t, lock: t.LOCK.UPDATE });
-      prod.stock = prod.stock - it.cantidad;
       await prod.save({ transaction: t });
     }
 

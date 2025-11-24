@@ -5,6 +5,9 @@ const Authorize = require('../middlewares/auth.middleware')
 // POST: api/auth
 router.post('/', auth.login)
 
+// POST: api/auth/registro
+router.post('/registro', auth.registro)
+
 // GET: api/auth/tiempo
 router.get('/tiempo', Authorize('Usuario,Administrador'), auth.tiempo)
 
