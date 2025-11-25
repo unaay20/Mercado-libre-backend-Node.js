@@ -23,6 +23,11 @@ const Authorize = (rol) => {
 
             // Si tiene accesom se permite continuar con el método y se obtienen los datos del usuario
             req.decodedToken = decodedToken
+            req.user = {
+                id: decodedToken[ClaimTypes.Name],
+                nombre: decodedToken[ClaimTypes.GivenName],
+                rol: decodedToken[ClaimTypes.Role]
+            };
 
             // Código para enviar un nuevo token
             var minutosRestantes = (decodedToken.exp - (new Date().getTime() / 1000)) / 60;
