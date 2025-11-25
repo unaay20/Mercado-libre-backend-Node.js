@@ -3,10 +3,10 @@ const usuarios = require('../controllers/usuarios.controller')
 const Authorize = require('../middlewares/auth.middleware')
 
 // GET: api/usuarios
-router.get('/', Authorize('Usuario,Administrador'), usuarios.getAll)
+router.get('/', Authorize('Administrador'), usuarios.getAll)
 
 // GET: api/usuarios/email
-router.get('/:email', Authorize('Usuario,Administrador'), usuarios.get)
+router.get('/:email', Authorize('Administrador'), usuarios.get)
 
 // POST: api/usuarios
 router.post('/', Authorize('Administrador'), usuarios.create)
